@@ -6,14 +6,8 @@ import joblib
 app = FastAPI()
 
 model = joblib.load('trained_model.pkl')
-scaler = joblib.load('scaler.pkl')
-label_encoders = joblib.load('label_encoders.pkl')
-class_encoder = joblib.load('class_encoder.pkl')
 
-# Mapeos 
-class_mapping = {0: 'Alpha', 1: 'Betha'}
-
-class PredictionInput(BaseModel):
+class PredictRequest(BaseModel):
     Partner: str
     Dependents: str
     Service1: str
@@ -26,35 +20,39 @@ class PredictionInput(BaseModel):
     PaperlessBilling: str
     PaymentMethod: str
     Charges: float
+    Demand: int
+
+class_mapping = {0: 'Alpha', 1: 'Betha'}
+
+label_encoders = {
+    'Partner': {'No': 0, 'Yes': 1},
+    'Dependents': {'No': 0, 'Yes': 1},
+    'Service1': {'No': 0, 'Yes': 1},
+    'Service2': {'No': 0, 'Yes': 1},
+    'Security': {'No': 0, 'Yes': 1, 'No internet service': 2},
+    'OnlineBackup': {'No': 0, 'Yes': 1, 'No internet service': 2},
+    'DeviceProtection': {'No': 0, 'Yes': 1, 'No internet service': 2},
+    'TechSupport': {'No': 0, 'Yes': 1, 'No internet service': 2},
+    'Contract': {'Month-to-month': 0, 'One year': 1, 'Two year': 2},
+    'PaperlessBilling': {'No': 0, 'Yes': 1},
+    'PaymentMethod': {'Electronic check': 0, 'Mailed check': 1, 'Bank transfer (automatic)': 2, 'Credit card (automatic)': 3},
+}
+
+scaler = joblib.load('scaler.pkl') 
 
 @app.post("/predict/")
-async def predict(input_data: PredictionInput):
-    try:
-        
-        data = pd.DataFrame([input_data.dict()])
+def predict(request: PredictRequest):
+    input_data = pd.DataFrame([request.dict()])
 
-         
-        for column, le in label_encoders.items():
-            if column in data.columns:
-                data[column] = le.transform(data[column])
-            else:
-                raise HTTPException(status_code=400, detail=f"Missing column: {column}")
+    for column, mapping in label_encoders.items():
+        if column in input_data.columns:
+            input_data[column] = input_data[column].map(mapping)
 
-         
-        if 'Charges' in data.columns:
-            data[['Charges']] = scaler.transform(data[['Charges']])
-        else:
-            raise HTTPException(status_code=400, detail="Missing 'Charges' column in input data")
+    input_data[['Charges']] = scaler.transform(input_data[['Charges']])
 
-        
-        prediction = model.predict(data)
-        
-         
-        result = class_mapping.get(prediction[0], 'Unknown')
-        
-        return {"prediction": result}
+    prediction = model.predict(input_data)
+    
+    predicted_class = class_mapping[prediction[0]]
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
+    return {"prediction": predicted_class}
  

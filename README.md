@@ -3,8 +3,14 @@ Prueba Técnica Forecasting
 
 El archivo contiene las bases de datos:
 
- * dataset_demand_acumulate.csv  Este archivo contiene la información de la demanda entre el 2017-01 hasta el 2022-04 siendo (año-mes). 
+ * dataset_demand_acumulate.csv  Este archivo contiene la información de la demanda entre el 2017-01 hasta el 2022-04 siendo (año-mes).
+
  * dataset_alpha_betha.csv Este archivo contiene la información de todas las variables involucradas para realizar la clasificación de si un registro es Alpha o Betha, este cuenta con más de 7000 registros. * to_predict.csv  Cuenta con 3 registros los cuales ya tienen toda la información completa, excepto la demanda y la clase. Este archivo esta completado con ayuda del modelo de clasificación Gradient Boosting.
+
+ * Para con sultar la Api para probar el modelo de machine learning (Clasificación, puede ingresar a http://127.0.0.1:8000/docs#/default/predict_predict__post)
+
+ ![FastApi](/Screen%20Shot%202024-07-26%20at%208.23.17%20PM.png)
+ 
 
  * El archivo  [Serie de Tiempo](/Serie%20de%20Tiempo.ipynb) contiene la predicción de la demanda a través del modelo ARIMA. 
 
